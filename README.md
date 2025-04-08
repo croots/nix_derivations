@@ -1,2 +1,2 @@
 # nix_derivations
-Personal collection of derivations for the NixOS package manager. Many will/are bioinformatics relevant.
+Personal collection of derivations for the NixOS package manager. Many will be/are bioinformatics relevant.
