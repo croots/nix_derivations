@@ -3,7 +3,9 @@ libz,
 autoconf,
 automake,
 libtool,
-perl}:
+perl,
+R,
+bowtie2}:
 
 stdenv.mkDerivation rec {
     name = "breseq-${version}";
@@ -24,10 +26,25 @@ stdenv.mkDerivation rec {
         libtool
     ];
 
+  REQUIRED_R = R.outPath;
+  REQUIRED_BOWTIE = bowtie2.outPath;
+
   buildPhase = ''
     ./bootstrap.sh
-    ./configure --prefix=$out --silent
+    ./configure --prefix=$out/unwrapped
     make -s
+  '';
+
+  installPhase = ''
+    make install
+    mkdir $out/bin
+    touch $out/bin/breseq
+    touch $out/bin/gdtools
+    echo -e "#! /usr/bin/bash\n\nexport PATH=$REQUIRED_R/bin:$REQUIRED_BOWTIE/bin:\$PATH\n\nexec $out/unwrapped/bin/breseq \$@" >> $out/bin/breseq
+    echo -e "#! /usr/bin/bash\n\nexport PATH=$REQUIRED_R/bin:$REQUIRED_BOWTIE/bin:\$PATH\n\nexec $out/unwrapped/bin/gdtools \$@" >> $out/bin/gdtools
+    chmod +x $out/bin/breseq
+    chmod +x $out/bin/gdtools
+    find $out -type f -exec patchelf --shrink-rpath '{}' \; -exec strip '{}' \; 2>/dev/null
   '';
 
   meta = with lib; {
